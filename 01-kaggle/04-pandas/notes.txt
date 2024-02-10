@@ -1,0 +1,144 @@
+We can access attribute using dot operation or key dictionary like
+
+Examples:
+```python
+data['country']
+data.country
+data['house price']
+data.house price  # this one error because contains space
+```
+
+
+In pandas, we can accessing the rows elements by using loc or iloc.
+
+Examples:
+```python
+data = pd.DataFrame(
+  {
+    'john': ["A", "B", "A"],
+    'jane': ["F", "C", "F"],
+  },
+  index=['math', 'biology', 'physics']
+)
+
+data.loc['math']
+data.iloc[0]
+```
+
+But if we use loc as selector, it always inclusion select.
+
+Examples:
+```python
+data = pd.DataFrame(
+  {
+    'john': ["A", "B", "A"],
+    'jane': ["F", "C", "F"],
+  },
+)
+
+data.loc[0:1]  # this will include first 2 rows
+data.iloc[0:1]  # this only include first 1 row
+```
+
+For querying / filtering we can use loc with conditions.
+
+Example:
+```python
+italian_reviews_with_90_plus_points = (
+    reviews.loc[
+        (reviews['country'] == 'Italy')  # parentheses is a must because operator precedence
+        & (reviews['points'] >= 90)
+    ]
+)
+```
+
+For assigning data we can use a constant value or a iterable value
+
+Example:
+```python
+reviews['critics'] = 'Everyone'
+reviews['index_backward'] = range(len(reviews), 0, -1)
+```
+
+
+`.describe` function is to get the summary. It is context aware depends on datatype
+
+Example:
+```
+reviews.points.describe:
+count    129971.000000
+mean         88.447138
+std           3.039730
+min          80.000000
+25%          86.000000
+50%          88.000000
+75%          91.000000
+max         100.000000
+Name: points, dtype: float64
+
+
+
+reviews.taster_name.describe:
+count         103727
+unique            19
+top       Roger Voss
+freq           25514
+Name: taster_name, dtype: object
+```
+
+Both .map, .apply are both function to transform data
+```python
+review_points_mean = reviews.points.mean()
+print(reviews.points.map(lambda p: p - review_points_mean))
+
+def remean_points(row):
+    row.points = row.points - review_points_mean
+    return row
+
+print(reviews.apply(remean_points, axis='columns').points)
+print(reviews.points)  # it doesn't modify in place
+```
+
+
+When grouping with multi fields, the result will have multi indexes
+To convert back to single index, we should use `reset_index` method
+
+When using dtypes for checking data type, the string type are considered as object
+
+We can replace null/NaN using `fillna` method.
+and replacing sentinel data value using `replace` method.
+Sentinel data value is data value that have more than one condition.
+For example -1, -999, False for reflecting null
+eg:
+```python
+print(reviews[reviews['country'].isnull()]['country'].fillna('Unknown').replace('Unknown', 'Potato'))
+```
+
+And if we need to replace the specific columns we should reassign it entirely.
+```python
+reviews['region_1'] = reviews['region_1'].fillna('Unknown')
+```
+
+We can change the columns or index name by using method `rename`
+eg:
+```python
+reviews.rename(columns={'points': 'score'})
+reviews.rename(index={0: 'firstEntry', 1: 'secondEntry'})
+```
+
+For combining data, we can use `concat` or `join`
+eg:
+```python
+pd.concat([canadian_youtube, british_youtube])
+
+left = canadian_youtube.set_index(['title', 'trending_date'])
+right = british_youtube.set_index(['title', 'trending_date'])
+
+left.join(right, lsuffix='_CAN', rsuffix='_UK')
+```
+
+We need to specify the index in order to join
+eg:
+```
+powerlifting_combined = powerlifting_meets.set_index('MeetID').join(powerlifting_competitors.set_index('MeetID'))
+```
